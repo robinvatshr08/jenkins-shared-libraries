@@ -1,9 +1,14 @@
-def call(String projectname,String tag,String dockerhubuser){
-  withCredentials([usernamePassword(
-             credentialsId:"dockerhub-token",
-             passwordVariable:"dockerHubPass",
-             usernameVariable:"dockerHubUser")]){
-                 sh " docker login -u ${dockerhubuser} -p ${dockerHubPass} "                
-             }
-               sh "docker push ${dockerHubUser}/${projectname}:${tag} "
+def call(String projectName, String tag, String dockerHubUser) {
+    withCredentials([usernamePassword(
+        credentialsId: 'dockerhub-token',
+        usernameVariable: 'DOCKER_USER',
+        passwordVariable: 'DOCKER_PASS'
+    )]) {
+        // Login securely using stdin
+        sh """
+            echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+            docker push \$DOCKER_USER/${projectName}:${tag}
+            docker logout
+        """
+    }
 }
